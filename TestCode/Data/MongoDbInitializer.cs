@@ -87,10 +87,8 @@ namespace TestCode.Data
                 ProjectCode = "П-001",
                 ProjectName = "ERP-система",
                 Budget = 20000,
-                //ProjectStart = new DateTime(2026, 1, 1),
-                //ProjectEnd = new DateTime(2026, 12, 31)
-                ProjectStart = new DateTime(2025, 1, 1),
-                ProjectEnd = new DateTime(2025, 12, 31)
+                ProjectStart = new DateTime(2026, 1, 1),
+                ProjectEnd = new DateTime(2026, 12, 31)
             };
 
             var project2 = new Project
