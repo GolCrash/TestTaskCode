@@ -19,6 +19,9 @@ namespace TestCode.Services
         {
             var timeEntries = _context.Database.GetCollection<TimeEntry>("time_entries");
 
+            if (month < 1 || month > 12)
+                throw new BusinessException("INVALID_MONTH", "Месяц должен быть от 1 до 12.");
+
             var startDate = new DateTime(year, month, 1);
             var endDate = startDate.AddMonths(1);
 
