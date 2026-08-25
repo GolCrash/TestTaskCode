@@ -292,7 +292,7 @@ namespace TestCode.Services
                 }).ToList();
         }
 
-        private Rate GetRateForDate(Employee employee,DateTime date)
+        public Rate GetRateForDate(Employee employee,DateTime date)
         {
             var rate = employee.Rates.Where(r => r.From <= date).OrderByDescending(r => r.From).FirstOrDefault();
 
@@ -302,7 +302,7 @@ namespace TestCode.Services
             return rate;
         }
 
-        private void ValidateHours(decimal hour)
+        public void ValidateHours(decimal hour)
         {
             if (hour <= 0)
                 throw new BusinessException("INVALID_HOURS", "Количество часов должно быть больше 0.");
@@ -341,23 +341,13 @@ namespace TestCode.Services
                 throw new BusinessException("PERIOD_CLOSED", "Период закрыт для редактирования.");
         }
 
-        private void ValidateProjectDate(Project project, DateTime date)
+        public void ValidateProjectDate(Project project, DateTime date)
         {
             if (date < project.ProjectStart)
                 throw new BusinessException("PROJECT_DATE_INVALID", "Дата записи раньше даты начала проекта.");
 
             if (project.ProjectEnd.HasValue && date > project.ProjectEnd.Value)
                 throw new BusinessException("PROJECT_DATE_INVALID", "Дата записи позже даты окончания проекта.");
-        }
-
-        private async Task ValidateDailyHours(string id, DateTime date, decimal hour, string excludedEntryId = null)
-        {
-            var existingHours = await GetDailyHours(id, date, excludedEntryId);
-
-            var totalHours = existingHours + hour;
-
-            if (totalHours > 24)
-                throw new BusinessException("DAILY_HOURS_LIMIT", "Количество часов не должно превышать 24.");
         }
     }
 }
