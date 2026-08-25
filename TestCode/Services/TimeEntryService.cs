@@ -176,6 +176,122 @@ namespace TestCode.Services
                 throw new BusinessException("CONCURRENCY_CONFLICT", "Запись была изменена другим пользователем. Обновите данные и попробуйте снова.");
         }
 
+        public async Task<TimeEntryListResponse> GetAsync(TimeEntryQuery query)
+        {
+            var timeEntries = _context.Database.GetCollection<TimeEntry>("time_entries");
+
+            var filters = new List<FilterDefinition<TimeEntry>>();
+
+            var startDate = new DateTime(query.Year, query.Month, 1);
+            var endDate = startDate.AddMonths(1);
+
+            filters.Add(
+                Builders<TimeEntry>.Filter.Gte(
+                    x => x.Date,
+                    startDate));
+
+            filters.Add(
+                Builders<TimeEntry>.Filter.Lt(
+                    x => x.Date,
+                    endDate));
+
+            if (!string.IsNullOrEmpty(query.EmployeeId))
+            {
+                filters.Add(
+                    Builders<TimeEntry>.Filter.Eq(
+                        x => x.EmployeeId,
+                        query.EmployeeId));
+            }
+
+            if (!string.IsNullOrEmpty(query.ProjectId))
+            {
+                filters.Add(
+                    Builders<TimeEntry>.Filter.Eq(
+                        x => x.ProjectId,
+                        query.ProjectId));
+            }
+
+            var filter = Builders<TimeEntry>.Filter.And(filters);
+
+            var totalCount = await timeEntries.CountDocumentsAsync(filter);
+
+            var entries = await timeEntries.Find(filter).SortByDescending(x => x.Date).Skip((query.Page - 1) * query.PageSize).Limit(query.PageSize).ToListAsync();
+
+            var items = new List<TimeEntryResponse>();
+
+            foreach (var entry in entries)
+            {
+                var employee = await _context.Database.GetCollection<Employee>("employees").Find(x => x.Id == entry.EmployeeId).FirstOrDefaultAsync();
+
+                var project = await _context.Database.GetCollection<Project>("projects").Find(x => x.Id == entry.ProjectId).FirstOrDefaultAsync();
+
+                var rate = GetRateForDate(employee, entry.Date);
+
+                items.Add(new TimeEntryResponse
+                {
+                    Id = entry.Id,
+                    EmployeeId = entry.EmployeeId,
+                    EmployeeName =
+                        $"{employee.LastName} {employee.Name} {employee.MiddleName}",
+
+                    ProjectId = entry.ProjectId,
+                    ProjectCode = project.ProjectCode,
+
+                    Date = entry.Date,
+                    Hours = entry.Hours,
+                    Comment = entry.Comment,
+                    IsOvertime = entry.IsOvertime,
+
+                    Rate = rate.Value,
+
+                    Amount = Math.Round(
+                        entry.Hours * rate.Value,
+                        2,
+                        MidpointRounding.AwayFromZero),
+
+                    Version = entry.Version
+                });
+            }
+
+            return new TimeEntryListResponse
+            {
+                Items = items,
+                Page = query.Page,
+                PageSize = query.PageSize,
+                TotalCount = (int)totalCount,
+                TotalPage = (int)Math.Ceiling(
+                    (double)totalCount / query.PageSize)
+            };
+        }
+
+        public async Task<List<EmployeeResponse>> GetEmployeesAsync()
+        {
+            var employees = _context.Database.GetCollection<Employee>("employees");
+
+            var result = await employees.Find(FilterDefinition<Employee>.Empty).ToListAsync();
+
+            return result.Select(e => new EmployeeResponse
+                {
+                    Id = e.Id,
+                    FullName = $"{e.LastName} {e.Name} {e.MiddleName}",
+                    Department = e.Department
+                }).ToList();
+        }
+
+        public async Task<List<ProjectResponse>> GetProjectsAsync()
+        {
+            var projects = _context.Database.GetCollection<Project>("projects");
+
+            var result = await projects.Find(FilterDefinition<Project>.Empty).ToListAsync();
+
+            return result.Select(p => new ProjectResponse
+                {
+                    Id = p.Id,
+                    ProjectCode = p.ProjectCode,
+                    Name = p.ProjectName
+                }).ToList();
+        }
+
         private Rate GetRateForDate(Employee employee,DateTime date)
         {
             var rate = employee.Rates.Where(r => r.From <= date).OrderByDescending(r => r.From).FirstOrDefault();

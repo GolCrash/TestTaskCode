@@ -15,6 +15,15 @@ namespace TestCode.Controllers
             _service = service;
         }
 
+        [HttpGet]
+        public async Task<ActionResult<TimeEntryListResponse>> Get(
+    [FromQuery] TimeEntryQuery query)
+        {
+            var result = await _service.GetAsync(query);
+
+            return Ok(result);
+        }
+
         [HttpPut]
         public async Task<ActionResult<TimeEntryResponse>> Create(
             TimeEntryRequest request)

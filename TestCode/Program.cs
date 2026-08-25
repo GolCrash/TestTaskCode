@@ -19,6 +19,7 @@ builder.Services.AddSingleton<MongoDbIndexes>();
 builder.Services.AddSingleton<TimeEntryService>();
 
 builder.Services.AddScoped<TimeEntryService>();
+builder.Services.AddScoped<PeriodService>();
 
 var app = builder.Build();
 
