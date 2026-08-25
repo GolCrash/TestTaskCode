@@ -11,9 +11,10 @@ builder.Services.AddSwaggerGen();
 
 var mongoSettings = builder.Configuration.GetSection("MongoDb").Get<MongoDbSettings>();
 builder.Services.AddSingleton(mongoSettings);
-builder.Services.AddSingleton<MongoDbContext>();
 
+builder.Services.AddSingleton<MongoDbContext>();
 builder.Services.AddSingleton<MongoDbInitializer>();
+builder.Services.AddSingleton<MongoDbIndexes>();
 
 var app = builder.Build();
 
