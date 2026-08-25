@@ -1,4 +1,5 @@
 using TestCode.Data;
+using TestCode.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,8 +16,12 @@ builder.Services.AddSingleton(mongoSettings);
 builder.Services.AddSingleton<MongoDbContext>();
 builder.Services.AddSingleton<MongoDbInitializer>();
 builder.Services.AddSingleton<MongoDbIndexes>();
+builder.Services.AddSingleton<TimeEntryService>();
+
 
 var app = builder.Build();
+
+app.UseMiddleware<BusinessExceptionMiddleware>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
