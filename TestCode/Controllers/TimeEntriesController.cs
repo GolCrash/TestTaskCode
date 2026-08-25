@@ -24,16 +24,16 @@ namespace TestCode.Controllers
             return Ok(result);
         }
 
-        [HttpPut]
+        [HttpPost]
         public async Task<ActionResult<TimeEntryResponse>> Create(
-            TimeEntryRequest request)
+    TimeEntryRequest request)
         {
             var result = await _service.CreateAsync(request);
 
             return Ok(result);
         }
 
-        [HttpPost("{id}")]
+        [HttpPut("{id}")]
         public async Task<ActionResult<TimeEntryResponse>> Update(
             string id,
             TimeEntryRequest request)

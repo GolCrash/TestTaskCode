@@ -35,6 +35,7 @@ if (app.Environment.IsDevelopment())
 
 var initializer = app.Services.GetRequiredService<MongoDbInitializer>();
 await initializer.InitializeAsync();
+await initializer.SeedAsync();
 
 app.UseHttpsRedirection();
 

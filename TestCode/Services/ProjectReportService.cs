@@ -27,13 +27,14 @@ namespace TestCode.Services
 
             var match = Builders<TimeEntry>.Filter.And(Builders<TimeEntry>.Filter.Gte(x => x.Date, startDate), Builders<TimeEntry>.Filter.Lt(x => x.Date, endDate));
 
-            var pipeline = timeEntries.Aggregate().Match(match).Lookup("employees", "employeeId", "_id", "employee").Unwind("employee");
+            var pipeline = timeEntries.Aggregate().Match(match).Lookup("employees", "EmployeeId", "_id", "employee").Unwind("employee");
+
             pipeline = pipeline.AppendStage<BsonDocument>(new BsonDocument("$set",new BsonDocument{
             { "applicableRates", new BsonDocument("$filter", new BsonDocument{
-                        { "input", "$employee.rates" },
+                        { "input", "$employee.Rates" },
                         { "as", "rate" },
                         {"cond", new BsonDocument("$lte", new BsonArray{
-                                    "$$rate.from", "$date" })
+                                    "$$rate.From", "$Date" })
                         }
                    })
             }
@@ -43,24 +44,25 @@ namespace TestCode.Services
             {"rate", new BsonDocument("$arrayElemAt", new BsonArray{
                         new BsonDocument( "$sortArray", new BsonDocument{
                                 {"input", "$applicableRates"},
-                                {"sortBy",new BsonDocument("from", -1)}
+                                {"sortBy",new BsonDocument("From", -1)}
                         }), 0 })
             }
             }));
 
-            pipeline = pipeline.Lookup("projects", "projectId", "_id","project").Unwind("project");
+            pipeline = pipeline.Lookup("projects", "ProjectId", "_id", "project").Unwind("project");
+
             pipeline = pipeline.AppendStage<BsonDocument>(new BsonDocument("$set", new BsonDocument{
             { "amount", new BsonDocument("$multiply", new BsonArray{
-                        "$hours","$rate.value"})
+                        "$Hours","$rate.Value"})
             }
             }));
 
             pipeline = pipeline.Group(new BsonDocument{
-                {"_id", "$projectId"},
-                {"projectCode", new BsonDocument("$first", "$project.projectCode")},
-                {"projectName", new BsonDocument("$first", "$project.projectName")},
-                {"budget", new BsonDocument("$first", "$project.budget")},
-                {"hours", new BsonDocument("$sum",  "$hours")},
+                {"_id", "$ProjectId"},
+                {"projectCode", new BsonDocument("$first", "$project.ProjectCode")},
+                {"projectName", new BsonDocument("$first", "$project.ProjectName")},
+                {"budget", new BsonDocument("$first", "$project.Budget")},
+                {"hours", new BsonDocument("$sum",  "$Hours")},
                 {"amount", new BsonDocument("$sum", "$amount")}
             });
 
