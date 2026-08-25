@@ -18,6 +18,7 @@ builder.Services.AddSingleton<MongoDbInitializer>();
 builder.Services.AddSingleton<MongoDbIndexes>();
 builder.Services.AddSingleton<TimeEntryService>();
 
+builder.Services.AddScoped<TimeEntryService>();
 
 var app = builder.Build();
 
